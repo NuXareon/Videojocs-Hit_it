@@ -1,0 +1,22 @@
+{
+  "name": "Videojocs-Hit_it",
+  "version": "0.0.0",
+  "description": "",
+  "main": "Keyboard.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NuXareon/Videojocs-Hit_it.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NuXareon/Videojocs-Hit_it/issues"
+  },
+  "homepage": "https://github.com/NuXareon/Videojocs-Hit_it",
+  "dependencies": {
+    "socket.io": "~0.9.16"
+  }
+}

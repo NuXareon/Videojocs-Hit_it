@@ -1,0 +1,119 @@
+<html>
+<head>
+	<style>
+		body {
+			margin: 0px;
+			padding: 0px;
+		}
+	</style>
+	<script src="requestAnimFrame.js"></script>
+	<script src="Keyboard.js"></script>
+	<script src="socket.io.min.js"></script>
+</head>
+<body>
+	<div id="canvas">
+		<canvas id="myCanvas" width="600" height="600"></canvas>
+	</div>
+
+	<script>
+
+		var socket = io.connect('http://localhost:4242');
+
+		var canvas = document.getElementById('myCanvas');
+		var context = canvas.getContext('2d');
+
+		var username = prompt("Enter your username:") || "Anonymous"; 
+
+		socket.emit('setUsername', username);
+
+		var players = {};
+
+		var Keyboard = new KeyboardJS(false);
+		var spaceKey = 32;
+
+		var gameIsOn = false;
+		var timer = 0;
+
+		var keydown = false;
+
+		document.addEventListener('keydown',function (e) {
+			if (e.keyCode == spaceKey){
+				e.preventDefault(); // evita el comportament per defecte de la tecla (p.e. teclat baixa scroll.)
+				if (!keydown){
+					socket.emit('hitIt');
+				}
+				keydown = true;
+			}
+		});
+
+		document.addEventListener('keyup', function (e) {
+			if (e.keyCode == spaceKey) keydown = false;
+		});
+
+		function Player() {
+
+		}
+		Player.prototype.updateInfo = function (player) {
+			this.id = player.id;
+			if (player.username !== undefined) this.username = player.username;
+			else this.username = "Anonymous";
+			this.score = player.score;
+		}
+		Player.prototype.render = function (context,i) {
+			context.font = "italic 20px Calibri";
+			context.fillStyle = 'black';
+			context.textBaseline = "top";
+			context.fillText(this.username+": "+this.score, 10, 10+30*i);
+		}
+		Player.prototype.logic = function (){
+		}
+
+		socket.on('updatePlayer', function (player) {
+			var newPlayer = players[player.id];
+			if (newPlayer === undefined){
+				newPlayer = new Player();
+				players[player.id] = newPlayer;
+			}
+			players[player.id].updateInfo(player);
+		});
+
+		socket.on('deletePlayer', function (playerId) {
+			delete players[playerId];
+		});
+
+		socket.on('beginGame', function() {
+			gameIsOn = true;
+			console.log("The game is on");
+		});
+
+		socket.on('endGame', function() {
+			gameIsOn = false;
+		});
+
+		function render() {
+			context.clearRect(0,0,canvas.width,canvas.height);
+
+			if (gameIsOn) {
+				context.fillStyle = 'yellow';
+				context.fillRect(0,0,600,600);
+			}
+
+			var i = 0;
+			for (playerId in players) {
+				players[playerId].render(context,i);
+				i += 1;
+			};
+		}
+
+		function logic() {
+			for (playerId in players) players[playerId].logic();
+		}
+
+		function mainLoop() {
+			requestAnimFrame(mainLoop);
+			logic();
+			render();
+		}
+		requestAnimFrame(mainLoop);
+	</script>
+</body>
